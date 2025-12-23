@@ -1,0 +1,147 @@
+ ======================================
+   PROJECT: DATA TRANSFORMER (SQL)
+ ====================================== 
+
+CREATE DATABASE DataTransformer;
+USE DataTransformer;
+
+ ---------- USERS TABLE ---------- 
+CREATE TABLE users (
+  UserID INT,
+  GivenName VARCHAR(20),
+  FamilyName VARCHAR(20),
+  ContactEmail VARCHAR(60),
+  JoinedOn DATE
+);
+
+INSERT INTO users VALUES
+(10,'Amit','Kumar','   amit.kumar@mail.com   ','2022-06-18'),
+(20,'Neha','Verma','neha.verma@mail.com','2021-12-05');
+
+ ---------- PURCHASES TABLE ---------- 
+CREATE TABLE purchases (
+  PurchaseID INT,
+  UserID INT,
+  PurchaseDate DATE,
+  AmountPaid DECIMAL(10,2)
+);
+
+INSERT INTO purchases VALUES
+(501,10,'2023-08-10',320.75),
+(502,20,'2023-08-15',480.50);
+
+ ---------- STAFF TABLE ---------- 
+CREATE TABLE staff (
+  StaffID INT,
+  FirstName VARCHAR(20),
+  LastName VARCHAR(20),
+  Team VARCHAR(20),
+  DateHired DATE,
+  Pay DECIMAL(10,2)
+);
+
+INSERT INTO staff VALUES
+(1,'Rohit','Sharma','Finance','2019-02-12',62000),
+(2,'Anjali','Mehta','Support','2021-05-25',48000);
+
+ ---------- QUERIES ---------- 
+
+ 1) INNER JOIN 
+SELECT p.PurchaseID, u.GivenName, u.FamilyName, p.AmountPaid
+FROM purchases p
+INNER JOIN users u
+ON p.UserID = u.UserID;
+
+ 2) LEFT JOIN 
+SELECT u.GivenName, p.PurchaseID
+FROM users u
+LEFT JOIN purchases p
+ON u.UserID = p.UserID;
+
+ 3) RIGHT JOIN 
+SELECT u.GivenName, p.PurchaseID
+FROM users u
+RIGHT JOIN purchases p
+ON u.UserID = p.UserID;
+
+ 4) FULL OUTER JOIN USING UNION 
+SELECT u.GivenName, p.PurchaseID
+FROM users u
+LEFT JOIN purchases p ON u.UserID = p.UserID
+UNION
+SELECT u.GivenName, p.PurchaseID
+FROM users u
+RIGHT JOIN purchases p ON u.UserID = p.UserID;
+
+ 5) SUBQUERY WITH AVG 
+SELECT GivenName, FamilyName
+FROM users
+WHERE UserID IN (
+  SELECT UserID
+  FROM purchases
+  WHERE AmountPaid > (SELECT AVG(AmountPaid) FROM purchases)
+);
+
+ 6) ABOVE AVERAGE PAY 
+SELECT FirstName, Pay
+FROM staff
+WHERE Pay > (SELECT AVG(Pay) FROM staff);
+
+ 7) YEAR & MONTH 
+SELECT PurchaseID,
+YEAR(PurchaseDate) AS PurchaseYear,
+MONTH(PurchaseDate) AS PurchaseMonth
+FROM purchases;
+
+ 8) DATEDIFF 
+SELECT PurchaseID,
+DATEDIFF(CURDATE(), PurchaseDate) AS DaysGap
+FROM purchases;
+
+ 9) DATE FORMAT 
+SELECT DATE_FORMAT(PurchaseDate,'%d-%M-%Y') AS NiceDate
+FROM purchases;
+
+ 10) CONCAT 
+SELECT CONCAT(GivenName,' ',FamilyName) AS FullName
+FROM users;
+
+ 11) REPLACE 
+SELECT REPLACE(GivenName,'Amit','Amitabh')
+FROM users;
+
+ 12) UPPER & LOWER 
+SELECT UPPER(GivenName), LOWER(FamilyName)
+FROM users;
+
+ 13) TRIM 
+SELECT TRIM(ContactEmail)
+FROM users;
+
+ 14) RUNNING TOTAL 
+SELECT PurchaseID, AmountPaid,
+SUM(AmountPaid) OVER (ORDER BY PurchaseDate) AS CumulativeAmount
+FROM purchases;
+
+ 15) RANK 
+SELECT PurchaseID, AmountPaid,
+RANK() OVER (ORDER BY AmountPaid DESC) AS AmountRank
+FROM purchases;
+
+ 16) CASE DISCOUNT 
+SELECT PurchaseID, AmountPaid,
+CASE
+  WHEN AmountPaid > 700 THEN 'Premium Discount'
+  WHEN AmountPaid > 400 THEN 'Standard Discount'
+  ELSE 'No Offer'
+END AS OfferStatus
+FROM purchases;
+
+ 17) CASE PAY LEVEL 
+SELECT FirstName, Pay,
+CASE
+  WHEN Pay >= 60000 THEN 'High'
+  WHEN Pay BETWEEN 45000 AND 59999 THEN 'Medium'
+  ELSE 'Low'
+END AS PayCategory
+FROM staff;
